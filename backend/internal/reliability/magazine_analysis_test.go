@@ -371,7 +371,8 @@ func TestReliabilityCurve_ExponentialDecay(t *testing.T) {
 func TestAnalyze_ConfidenceIntervalCoverage(t *testing.T) {
 	t.Skip("统计覆盖率测试，耗时长，可选择性运行")
 	params := MagazineParams{Capacity: 10, BaseJamRate: 1.0 / 1000}
-	trueMTBF := 1.0 / params.BaseJamRate
+	_trueMTBF := 1.0 / params.BaseJamRate
+	_ = _trueMTBF
 	hits := 0
 	trials := 100
 	for i := 0; i < trials; i++ {

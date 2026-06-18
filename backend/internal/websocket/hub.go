@@ -35,7 +35,7 @@ func NewHub() *Hub {
 	return &Hub{
 		clients:         make(map[*Client]bool),
 		broadcast:       make(chan []byte, 256),
-		register:        make(chan *Client),
+		Register:        make(chan *Client),
 		unregister:      make(chan *Client),
 		crossbowClients: make(map[string]map[*Client]bool),
 		pingInterval:    time.Duration(cfg.PingInterval) * time.Second,

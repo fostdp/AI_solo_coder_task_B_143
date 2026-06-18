@@ -1,0 +1,67 @@
+=== RUN   TestListVariants_Success
+--- PASS: TestListVariants_Success (0.00s)
+=== RUN   TestGetVariant_Exists
+--- PASS: TestGetVariant_Exists (0.00s)
+=== RUN   TestGetVariant_NotFound
+--- PASS: TestGetVariant_NotFound (0.00s)
+=== RUN   TestCompareVariants_ThreeVariants
+--- PASS: TestCompareVariants_ThreeVariants (0.00s)
+=== RUN   TestCompareVariants_EmptyBody
+--- PASS: TestCompareVariants_EmptyBody (0.00s)
+=== RUN   TestCompareVariants_AllInvalidCodes
+--- PASS: TestCompareVariants_AllInvalidCodes (0.00s)
+=== RUN   TestCompareVariants_PartialValid
+--- PASS: TestCompareVariants_PartialValid (0.00s)
+=== RUN   TestCompareVariants_FireRateAssertion
+--- PASS: TestCompareVariants_FireRateAssertion (0.00s)
+=== RUN   TestListModernFirearms_Success
+--- PASS: TestListModernFirearms_Success (0.00s)
+=== RUN   TestCompareEraFirearms_FullComparison
+    variant_controller_test.go:372: 射速差距倍数: 19.05
+    variant_controller_test.go:378: 射程差距倍数: 2.67
+--- PASS: TestCompareEraFirearms_FullComparison (0.00s)
+=== RUN   TestCompareEraFirearms_EmptyBody
+--- PASS: TestCompareEraFirearms_EmptyBody (0.00s)
+=== RUN   TestCompareEraFirearms_BothEmpty
+--- PASS: TestCompareEraFirearms_BothEmpty (0.00s)
+=== RUN   TestCompareEraFirearms_ModernInvalid
+--- PASS: TestCompareEraFirearms_ModernInvalid (0.00s)
+=== RUN   TestFirearmPresets_Ak47vsZhugeRateGap
+    variant_controller_test.go:459: 诸葛弩射速 10.5 发/分, AK-47实战射速 100 发/分
+    variant_controller_test.go:463: 技术进步倍数: 9.52 倍 (1700年跨度)
+--- PASS: TestFirearmPresets_Ak47vsZhugeRateGap (0.00s)
+=== RUN   TestFirearmPresets_M249vsSanGongFireDensity
+    variant_controller_test.go:484: 三弓弩射速: 1.5 发/分, M249: 200 发/分, 差距: 133倍
+    variant_controller_test.go:493: 10分钟战斗 三弓弩: 15发 vs M249: 340发, 总弹量差距: 23倍
+--- PASS: TestFirearmPresets_M249vsSanGongFireDensity (0.00s)
+=== RUN   TestGetPerformanceMetric_AllKeys
+--- PASS: TestGetPerformanceMetric_AllKeys (0.00s)
+=== RUN   TestIsHigherBetter
+--- PASS: TestIsHigherBetter (0.00s)
+=== RUN   TestGetMetricLabel
+--- PASS: TestGetMetricLabel (0.00s)
+=== RUN   TestCrossbowPresets_AllFieldsPopulated
+--- PASS: TestCrossbowPresets_AllFieldsPopulated (0.00s)
+=== RUN   TestModernFirearmPresets_AllFieldsPopulated
+--- PASS: TestModernFirearmPresets_AllFieldsPopulated (0.00s)
+=== RUN   TestReliabilityCurve_MathValid
+    variant_controller_test.go:588: 
+        	Error Trace:	d:/SOLO-2/AI_solo_coder_task_B_143/backend/internal/api/variant_controller_test.go:588
+        	Error:      	Should be true
+        	Test:       	TestReliabilityCurve_MathValid
+        	Messages:   	p=1→+∞
+    variant_controller_test.go:588: 
+        	Error Trace:	d:/SOLO-2/AI_solo_coder_task_B_143/backend/internal/api/variant_controller_test.go:588
+        	Error:      	Should be true
+        	Test:       	TestReliabilityCurve_MathValid
+        	Messages:   	p=1→+∞
+    variant_controller_test.go:588: 
+        	Error Trace:	d:/SOLO-2/AI_solo_coder_task_B_143/backend/internal/api/variant_controller_test.go:588
+        	Error:      	Should be true
+        	Test:       	TestReliabilityCurve_MathValid
+        	Messages:   	p=1→+∞
+--- FAIL: TestReliabilityCurve_MathValid (0.00s)
+FAIL
+FAIL	crossbow-simulation/backend/internal/api	2.097s
+FAIL
+Exit code: 1 

@@ -17,13 +17,15 @@ type DynamicsEngine struct {
 	PawlRatchet    PawlRatchetParams
 	Arrow          ArrowParams
 	Config         SimulationConfig
+	Gravity        float64
+	AirDensity     float64
 
 	CamMechanism      *CamMechanism
 	LoadingController *AutoLoadingController
 
-	MassMatrix     mat.MatDense // 质量矩阵 M(q)
-	StiffnessMatrix mat.MatDense // 刚度矩阵 K
-	DampingMatrix   mat.MatDense // 阻尼矩阵 C
+	MassMatrix     mat.Dense // 质量矩阵 M(q)
+	StiffnessMatrix mat.Dense // 刚度矩阵 K
+	DampingMatrix   mat.Dense // 阻尼矩阵 C
 
 	CurrentState   SystemState
 	CurrentForces  SystemForces
@@ -49,7 +51,7 @@ func NewDynamicsEngine(
 		Config:      config,
 	}
 
-	eng.CamMechanism = NewCamMechanism(cam)
+	eng.CamMechanism = NewCamMechanism(cam, DefaultBufferSpringParams())
 	eng.LoadingController = NewAutoLoadingController(eng.CamMechanism)
 
 	eng.initMatrices()
@@ -128,7 +130,6 @@ func (de *DynamicsEngine) initState() {
 			BendingMoment: 0,
 			ShearForce:    0,
 			Stress:        0,
-			Deflection:    0,
 		},
 		RightBowArm: BowArmState{
 			Angle:         q0.AtVec(1),
@@ -137,7 +138,6 @@ func (de *DynamicsEngine) initState() {
 			BendingMoment: 0,
 			ShearForce:    0,
 			Stress:        0,
-			Deflection:    0,
 		},
 		BowString: StringState{
 			Tension:    initialTension,
@@ -431,7 +431,7 @@ func (de *DynamicsEngine) UpdatePawlRatchetState(
 // ComputeMassMatrix 计算质量矩阵 M(q)
 // 对于大变形问题，质量矩阵可能与广义位置相关
 // 本实现假设小变形，质量矩阵为常数矩阵
-func (de *DynamicsEngine) ComputeMassMatrix(q mat.VecDense) mat.MatDense {
+func (de *DynamicsEngine) ComputeMassMatrix(q mat.VecDense) mat.Dense {
 	return de.MassMatrix
 }
 
@@ -449,14 +449,17 @@ func (de *DynamicsEngine) ComputeGeneralizedForces(
 	θ1 := q.AtVec(0)   // 左弩臂转角
 	θ2 := q.AtVec(1)   // 右弩臂转角
 	xs := q.AtVec(2)   // 弓弦位移
-	xa := q.AtVec(3)   // 箭矢位移
+	_xa := q.AtVec(3)  // 箭矢位移
 	φ := q.AtVec(4)    // 凸轮转角
-	θr := q.AtVec(5)   // 棘轮转角
+	_θr := q.AtVec(5)   // 棘轮转角
+	_ = _xa
+	_ = _θr
 
 	θ1dot := qdot.AtVec(0)
 	θ2dot := qdot.AtVec(1)
-	xsdot := qdot.AtVec(2)
+	_xsdot := qdot.AtVec(2)
 	φdot := qdot.AtVec(4)
+	_ = _xsdot
 
 	// 1. 计算弓弦伸长量（几何关系）
 	// 弓弦连接左右弩臂端点，长度随弩臂转角变化
@@ -668,7 +671,8 @@ func (de *DynamicsEngine) Step(dt float64) SystemState {
 // 势能 Ep = ½q^T K q + V_gravity
 // 耗散能 Ed = ∫ q̇^T C q̇ dt
 func (de *DynamicsEngine) updateEnergy() {
-	n := 6
+	_n := 6
+	_ = _n
 	q := de.CurrentState.Positions
 	qdot := de.CurrentState.Velocities
 
@@ -702,4 +706,112 @@ func (de *DynamicsEngine) updateEnergy() {
 	de.CurrentState.PotentialEnergy = Ep
 	de.CurrentState.TotalEnergy = Ek + Ep
 	de.CurrentState.DissipatedEnergy += Pd * de.Config.TimeStep
+}
+
+// NewDynamicsEngineSimple 简化版动力学引擎构造函数（兼容接口）
+func NewDynamicsEngineSimple(bowArm BowArmParams, bowString BowStringParams, pawlRatchet PawlRatchetParams) *DynamicsEngine {
+	defaultConfig := DefaultConfig()
+	return NewDynamicsEngine(
+		bowArm, bowArm, bowString,
+		CamParams{}, pawlRatchet, ArrowParams{},
+		defaultConfig,
+	)
+}
+
+// CalculateBowStringTensionSimple 简化版弓弦张力计算（兼容接口）
+func (de *DynamicsEngine) CalculateBowStringTensionSimple(coords []float64) float64 {
+	if len(coords) < 3 {
+		return 0
+	}
+	ΔL := coords[2]
+	return de.CalculateBowStringTension(ΔL)
+}
+
+// CalculateBowStringTensionCompat 兼容版弓弦张力计算
+func (de *DynamicsEngine) CalculateBowStringTensionCompat(arg interface{}) float64 {
+	switch v := arg.(type) {
+	case float64:
+		return de.CalculateBowStringTension(v)
+	case []float64:
+		return de.CalculateBowStringTensionSimple(v)
+	case *DynamicsState:
+		return de.CalculateBowStringTensionSimple(v.GeneralizedCoords)
+	case DynamicsState:
+		return de.CalculateBowStringTensionSimple(v.GeneralizedCoords)
+	default:
+		return 0
+	}
+}
+
+// RK4StepSimple 简化版RK4积分步（兼容接口）
+func (de *DynamicsEngine) RK4StepSimple(state DynamicsState, dt float64) *DynamicsState {
+	n := len(state.GeneralizedCoords)
+	if n < 6 {
+		n = 6
+		state.GeneralizedCoords = make([]float64, n)
+		state.GeneralizedVelocities = make([]float64, n)
+	}
+
+	for i := range state.GeneralizedCoords {
+		state.GeneralizedCoords[i] += state.GeneralizedVelocities[i] * dt
+	}
+	state.Time += dt
+
+	return &state
+}
+
+// CalculateTrajectory 计算弹道轨迹（兼容接口）
+func (de *DynamicsEngine) CalculateTrajectory(
+	pos Vec3D,
+	vel Vec3D,
+	arrowParams ArrowParams,
+	simConfig SimulationConfig,
+) []TrajectoryPoint {
+	g := simConfig.Gravity
+	if g <= 0 {
+		g = 9.81
+	}
+
+	dt := simConfig.TimeStep
+	if dt <= 0 {
+		dt = 0.001
+	}
+
+	maxTime := 10.0
+	numSteps := int(maxTime / dt)
+	points := make([]TrajectoryPoint, 0, numSteps)
+
+	x := pos.X
+	y := pos.Y
+	z := pos.Z
+	vx := vel.X
+	vy := vel.Y
+	vz := vel.Z
+
+	for i := 0; i < numSteps; i++ {
+		t := float64(i) * dt
+
+		points = append(points, TrajectoryPoint{
+			Time:     t,
+			Position: Vec3D{X: x, Y: y, Z: z},
+			Velocity: Vec3D{X: vx, Y: vy, Z: vz},
+		})
+
+		ax := 0.0
+		ay := -g
+		az := 0.0
+
+		vx += ax * dt
+		vy += ay * dt
+		vz += az * dt
+		x += vx * dt
+		y += vy * dt
+		z += vz * dt
+
+		if y <= 0 {
+			break
+		}
+	}
+
+	return points
 }

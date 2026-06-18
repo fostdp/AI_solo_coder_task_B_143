@@ -1,0 +1,5 @@
+# crossbow-simulation/backend/internal/dynamics_engine [crossbow-simulation/backend/internal/dynamics_engine.test]
+internal\dynamics_engine\engine_test.go:293:23: 0.99 (untyped float constant) truncated to int
+FAIL	crossbow-simulation/backend/internal/dynamics_engine [build failed]
+FAIL
+Exit code: 1 

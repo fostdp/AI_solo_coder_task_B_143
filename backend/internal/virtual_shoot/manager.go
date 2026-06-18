@@ -184,10 +184,11 @@ func simulateTriggerForce(variantCode string, operatorTravelPct, pullSpeedMps fl
 		}
 		meanF += f
 		if i > 0 {
-			dt := travel / float64(nPts-1) / 1000.0
+			_dt := travel / float64(nPts-1) / 1000.0
 			dx := travel / float64(nPts-1) / 1000.0
 			workJ += f * dx
 			impulseNs += f * (dx / math.Max(0.001, pullSpeedMps))
+			_ = _dt
 		}
 	}
 	meanF /= float64(nPts)
@@ -440,9 +441,25 @@ func (m *VirtualShootManager) Shoot(sessionID string, req model.VirtualShootRequ
 		Recovered: false,
 	}
 
+	// ---- 预装填逻辑：弹匣空时先装弹，无论是否冷却（装弹耗时可以冷却）----
+	autoReloaded := false
+	if sess.CurrentAmmo <= 0 {
+		sess.ReloadCount++
+		sess.CurrentAmmo = magCap
+		sess.ElapsedSec += reloadTimeSec
+		// 装弹时间同时作为冷却时间补偿
+		elapsedSinceLast += reloadTimeSec
+		autoReloaded = true
+	}
+
 	if elapsedSinceLast < minIntervalSec {
 		sess.IsCooling = true
-		resp.Message = "武器冷却中，请等待发射间隔"
+		if autoReloaded {
+			resp.Message = "箭匣已装填完成，武器冷却中，请稍候"
+			resp.Recovered = true
+		} else {
+			resp.Message = "武器冷却中，请等待发射间隔"
+		}
 		resp.NewState = cloneSession(sess)
 		return resp, nil
 	}

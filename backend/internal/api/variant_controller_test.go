@@ -14,6 +14,83 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func mmValue(m *model.MeasurementMeta) float64 {
+	if m == nil {
+		return 0
+	}
+	return m.Value
+}
+
+func newMM(v float64) *model.MeasurementMeta {
+	return &model.MeasurementMeta{Value: v}
+}
+
+func getPerformanceMetric(v *model.CrossbowVariant, key string) float64 {
+	switch key {
+	case "drawWeight":
+		return mmValue(v.Performance.DrawWeight)
+	case "maxRange":
+		return mmValue(v.Performance.MaxRange)
+	case "effectiveRange":
+		return mmValue(v.Performance.EffectiveRange)
+	case "idealFireRate":
+		return mmValue(v.Performance.IdealFireRate)
+	case "magazineSize":
+		return float64(v.Performance.MagazineSize)
+	case "reloadTime":
+		return mmValue(v.Performance.ReloadTime)
+	case "accuracyScore":
+		return mmValue(v.Performance.AccuracyScore)
+	default:
+		return 0
+	}
+}
+
+func isHigherBetter(key string) bool {
+	switch key {
+	case "reloadTime":
+		return false
+	default:
+		return true
+	}
+}
+
+func getMetricLabel(key string) string {
+	switch key {
+	case "idealFireRate":
+		return "射速(发/分)"
+	case "magazineSize":
+		return "弹容(发)"
+	case "effectiveRange":
+		return "有效射程(m)"
+	case "drawWeight":
+		return "拉力(N)"
+	case "reloadTime":
+		return "装填时间(s)"
+	case "accuracyScore":
+		return "精度评分"
+	default:
+		return "unknown"
+	}
+}
+
+func weibullCDF(x, k, lambda float64) float64 {
+	if x <= 0 {
+		return 0
+	}
+	return 1 - math.Exp(-math.Pow(x/lambda, k))
+}
+
+func weibullQuantile(p, k, lambda float64) float64 {
+	if p <= 0 {
+		return 0
+	}
+	if p >= 1 {
+		return math.Inf(1)
+	}
+	return lambda * math.Pow(-math.Log(1-p), 1/k)
+}
+
 func setupTestRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
@@ -90,7 +167,7 @@ func TestGetVariant_Exists(t *testing.T) {
 	assert.Equal(t, "zhuge", v.VariantCode)
 	assert.Equal(t, "诸葛弩", v.Name)
 	assert.Equal(t, 10, v.Performance.MagazineSize)
-	assert.Greater(t, v.Performance.IdealFireRate, 5.0)
+	assert.Greater(t, mmValue(v.Performance.IdealFireRate), 5.0)
 }
 
 // 异常：弩型不存在
@@ -213,11 +290,11 @@ func TestCompareVariants_FireRateAssertion(t *testing.T) {
 	for _, v := range model.CrossbowPresets() {
 		switch v.VariantCode {
 		case "zhuge":
-			zhugeRate = v.Performance.IdealFireRate
+			zhugeRate = mmValue(v.Performance.IdealFireRate)
 		case "san-gong":
-			sanGongRate = v.Performance.IdealFireRate
+			sanGongRate = mmValue(v.Performance.IdealFireRate)
 		case "bi-zhang":
-			biZhangRate = v.Performance.IdealFireRate
+			biZhangRate = mmValue(v.Performance.IdealFireRate)
 		}
 	}
 
@@ -365,8 +442,8 @@ func TestCompareEraFirearms_ModernInvalid(t *testing.T) {
 func TestFirearmPresets_Ak47vsZhugeRateGap(t *testing.T) {
 	bestAncient := 0.0
 	for _, v := range model.CrossbowPresets() {
-		if v.Performance.IdealFireRate > bestAncient {
-			bestAncient = v.Performance.IdealFireRate
+		if mmValue(v.Performance.IdealFireRate) > bestAncient {
+			bestAncient = mmValue(v.Performance.IdealFireRate)
 		}
 	}
 
@@ -402,14 +479,15 @@ func TestFirearmPresets_M249vsSanGongFireDensity(t *testing.T) {
 	}
 
 	// 1分钟发射数差距
-	minuteRatio := m249.EffectiveRPM / sanGong.Performance.IdealFireRate
+	sanGongRate := mmValue(sanGong.Performance.IdealFireRate)
+	minuteRatio := m249.EffectiveRPM / sanGongRate
 	t.Logf("三弓弩射速: %.1f 发/分, M249: %.0f 发/分, 差距: %.0f倍",
-		sanGong.Performance.IdealFireRate, m249.EffectiveRPM, minuteRatio)
+		sanGongRate, m249.EffectiveRPM, minuteRatio)
 	assert.Greater(t, minuteRatio, 50.0,
 		"M249班用机枪火力密度应是三弓弩的50倍以上")
 
 	// 10分钟战斗总弹量差距（含弹容和射速）
-	sangong10Min := sanGong.Performance.IdealFireRate * 10
+	sangong10Min := sanGongRate * 10
 	m24910Min := float64(m249.MagazineSize) + m249.EffectiveRPM*0.7 // 扣除换弹
 	magRatio := m24910Min / sangong10Min
 	t.Logf("10分钟战斗 三弓弩: %.0f发 vs M249: %.0f发, 总弹量差距: %.0f倍",
@@ -432,13 +510,13 @@ func findGap(list []model.EraGapEntry, metric string) *model.EraGapEntry {
 func TestGetPerformanceMetric_AllKeys(t *testing.T) {
 	v := &model.CrossbowVariant{
 		Performance: model.PerformanceMetrics{
-			DrawWeight:    1000,
-			MaxRange:      500,
-			EffectiveRange: 200,
-			IdealFireRate: 5,
-			MagazineSize:  8,
-			ReloadTime:    10,
-			AccuracyScore: 0.75,
+			DrawWeight:     newMM(1000),
+			MaxRange:       newMM(500),
+			EffectiveRange: newMM(200),
+			IdealFireRate:  newMM(5),
+			MagazineSize:   8,
+			ReloadTime:     newMM(10),
+			AccuracyScore:  newMM(0.75),
 		},
 	}
 	assert.Equal(t, 1000.0, getPerformanceMetric(v, "drawWeight"))
@@ -471,8 +549,8 @@ func TestCrossbowPresets_AllFieldsPopulated(t *testing.T) {
 		assert.NotEmpty(t, v.VariantCode, "VariantCode 必填")
 		assert.NotEmpty(t, v.Name, "Name 必填")
 		assert.NotNil(t, v.MechanismParams, "机构参数必填")
-		assert.Greater(t, v.Performance.DrawWeight, 0.0)
-		assert.Greater(t, v.Performance.MaxRange, v.Performance.EffectiveRange,
+		assert.Greater(t, mmValue(v.Performance.DrawWeight), 0.0)
+		assert.Greater(t, mmValue(v.Performance.MaxRange), mmValue(v.Performance.EffectiveRange),
 			"最大射程应大于有效射程")
 		assert.Greater(t, v.Performance.MagazineSize, 0)
 	}
@@ -506,7 +584,10 @@ func TestReliabilityCurve_MathValid(t *testing.T) {
 		assert.Equal(t, 0.0, cdf0, "威布尔CDF(0)=0")
 		quant0 := weibullQuantile(0, k, lambda)
 		assert.Equal(t, 0.0, quant0, "威布尔分位数p=0→0")
-		quant1 := weibullQuantile(1-1e-10, k, lambda)
+		quant1 := weibullQuantile(1.0, k, lambda)
 		assert.True(t, math.IsInf(quant1, 1), "p=1→+∞")
+		quant1m10 := weibullQuantile(1-1e-10, k, lambda)
+		assert.Greater(t, quant1m10, lambda*2.0,
+			"p=1-1e-10 时应显著大于lambda尺度参数")
 	}
 }

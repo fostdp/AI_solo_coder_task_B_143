@@ -111,36 +111,40 @@ func NewMechanismSimulator(
 
 	// 创建动力学引擎
 	bowArm := simulation.BowArmParams{
-		Length:       mechParams.BowArm.Length,
-		Width:        mechParams.BowArm.Width,
-		Thickness:    mechParams.BowArm.Thickness,
-		YoungsModulus: mechParams.BowArm.YoungsModulus,
-		MaxStress:    mechParams.BowArm.MaxStress,
-		PreTension:   mechParams.BowString.PreTension,
-		DampingCoeff: mechParams.BowArm.DampingCoeff,
-		Material:     "wood",
+		Length:             mechParams.BowArm.Length,
+		Width:              mechParams.BowArm.Width,
+		Thickness:          mechParams.BowArm.Thickness,
+		YoungsModulus:      mechParams.BowArm.YoungsModulus,
+		MaxStress:          mechParams.BowArm.MaxStress,
+		PreTension:         mechParams.BowString.PreTension,
+		DampingCoeff:       mechParams.BowArm.DampingCoeff,
+		TorsionalStiffness: mechParams.BowArm.TorsionalStiffness,
+		MaterialName:       "wood",
 	}
 
 	bowString := simulation.BowStringParams{
-		Length0:       mechParams.BowString.Length0,
-		Radius:        mechParams.BowString.Radius,
-		YoungsModulus: mechParams.BowString.YoungsModulus,
-		YieldStrength: mechParams.BowString.YieldStrength,
-		PreTension:    mechParams.BowString.PreTension,
-		DampingCoeff:  mechParams.BowString.DampingCoeff,
-		Material:      mechParams.BowString.Material,
+		Length0:                mechParams.BowString.Length0,
+		Radius:                 mechParams.BowString.Radius,
+		YoungsModulus:          mechParams.BowString.YoungsModulus,
+		YieldStrength:          mechParams.BowString.YieldStrength,
+		PreTension:             mechParams.BowString.PreTension,
+		DampingCoeff:           mechParams.BowString.DampingCoeff,
+		FatigueStrengthCoeff:   mechParams.BowString.FatigueStrengthCoeff,
+		FatigueStrengthExponent: mechParams.BowString.FatigueStrengthExponent,
+		MaterialName:           mechParams.BowString.Material,
 	}
 
 	pawlRatchet := simulation.PawlRatchetParams{
-		NumTeeth:      mechParams.PawlRatchet.NumTeeth,
-		PawlMass:      mechParams.PawlRatchet.PawlMass,
-		PawlLength:    mechParams.PawlRatchet.PawlLength,
+		NumTeeth:        mechParams.PawlRatchet.NumTeeth,
+		PawlMass:        mechParams.PawlRatchet.PawlMass,
+		PawlLength:      mechParams.PawlRatchet.PawlLength,
 		SpringStiffness: mechParams.PawlRatchet.SpringStiffness,
-		Damping:       mechParams.PawlRatchet.Damping,
-		FrictionCoeff: mechParams.PawlRatchet.FrictionCoeff,
+		Damping:         mechParams.PawlRatchet.Damping,
+		FrictionCoeff:   mechParams.PawlRatchet.FrictionCoeff,
+		RatchetRadius:   mechParams.PawlRatchet.RatchetRadius,
 	}
 
-	engine := simulation.NewDynamicsEngine(bowArm, bowString, pawlRatchet)
+	engine := simulation.NewDynamicsEngineSimple(bowArm, bowString, pawlRatchet)
 	engine.Gravity = mechParams.Simulation.Gravity
 	engine.AirDensity = mechParams.Simulation.AirDensity
 
@@ -309,7 +313,8 @@ func (s *MechanismSimulator) step(dt float64, t float64) {
 
 	// 3. 凸轮机构更新（带弹簧缓冲）
 	s.camMech.CurrentAngle += effectiveRotSpeed * dt
-	idealFollower := s.camMech.CalculateIdealFollowerMotion(s.camMech.CurrentAngle, effectiveRotSpeed)
+	_idealFollower := s.camMech.CalculateIdealFollowerMotion(s.camMech.CurrentAngle, effectiveRotSpeed)
+	_ = _idealFollower
 	prevCamFollower := s.state.CamFollower
 	newCamFollower := s.camMech.UpdateFollowerWithSpring(prevCamFollower, s.camMech.CurrentAngle, effectiveRotSpeed, dt)
 	s.state.CamFollower = newCamFollower
@@ -354,7 +359,7 @@ func (s *MechanismSimulator) step(dt float64, t float64) {
 
 	// 5. RK4积分（正常流程）
 	if !trigger {
-		s.state = s.engine.RK4Step(*s.state, dt)
+		s.state = s.engine.RK4StepSimple(*s.state, dt)
 	}
 
 	// 6. 检查凸轮卡死风险
@@ -372,7 +377,7 @@ func (s *MechanismSimulator) calculateTrajectory(
 	arrowParams simulation.ArrowParams,
 	t float64,
 ) (*simulation.TrajectoryData, float64) {
-	tension := s.engine.CalculateBowStringTension(s.state.GeneralizedCoords)
+	tension := s.engine.CalculateBowStringTensionSimple(s.state.GeneralizedCoords)
 
 	releaseTime := t
 	initialVel := math.Sqrt(2 * tension * math.Abs(s.state.GeneralizedCoords[2]) / arrowParams.Mass)
@@ -411,7 +416,7 @@ func (s *MechanismSimulator) calculateTrajectory(
 
 // updateFatigue 更新疲劳累积
 func (s *MechanismSimulator) updateFatigue(stringDisplacement float64) {
-	tension := s.engine.CalculateBowStringTension(s.state.GeneralizedCoords)
+	tension := s.engine.CalculateBowStringTensionSimple(s.state.GeneralizedCoords)
 	deltaL := math.Abs(stringDisplacement)
 	stress := tension * s.mechParams.BowString.YoungsModulus / s.mechParams.BowString.Length0 * s.mechParams.BowString.Length0
 
@@ -452,18 +457,18 @@ func (s *MechanismSimulator) broadcastState(t float64) {
 	fatigue := s.fatigue
 	s.mu.RUnlock()
 
-	tension := s.engine.CalculateBowStringTension(&state)
+	tension := s.engine.CalculateBowStringTensionCompat(&state)
 	deformation := state.BowArmState.Deflection
 	magazinePos := float64(state.GeneralizedCoords[4]) / s.mechParams.Cam.Lift
 	fireRate := 1.0 / math.Max(0.001, t)
 
 	sensorData := model.SensorData{
-		CrossbowID:      s.crossbowID,
-		StringTension:   tension,
-		ArmDeformation:  deformation,
-		MagazinePosition: magazinePos,
-		FireRate:        fireRate,
-		Timestamp:       time.Now(),
+		CrossbowID:        s.crossbowID,
+		StringTension:     tension,
+		BowArmDeformation: deformation,
+		MagazinePosition:  magazinePos,
+		FireRate:          fireRate,
+		Timestamp:         time.Now(),
 	}
 
 	output := SimulatorOutput{

@@ -197,12 +197,12 @@ func (r *DTUReceiver) validate(data model.SensorData) ValidatedData {
 	}
 
 	// 弩臂变形范围校验
-	if data.ArmDeformation < r.config.MinDeformation || data.ArmDeformation > r.config.MaxDeformation {
+	if data.BowArmDeformation < r.config.MinDeformation || data.BowArmDeformation > r.config.MaxDeformation {
 		result.IsValid = false
 		result.Errors = append(result.Errors, ValidationError{
-			Field:   "arm_deformation",
+			Field:   "bow_arm_deformation",
 			Message: "out of valid range",
-			Value:   data.ArmDeformation,
+			Value:   data.BowArmDeformation,
 		})
 	}
 
@@ -244,13 +244,13 @@ func (r *DTUReceiver) validate(data model.SensorData) ValidatedData {
 	}
 
 	// 物理一致性校验：张力与变形正相关
-	if data.StringTension > 0 && data.ArmDeformation < 0 {
+	if data.StringTension > 0 && data.BowArmDeformation < 0 {
 		// 张力为正，变形应为正（弩臂向外弯）
 		result.IsValid = false
 		result.Errors = append(result.Errors, ValidationError{
 			Field:   "tension_deformation_correlation",
 			Message: "positive tension should correspond to positive deformation",
-			Value:   map[string]float64{"tension": data.StringTension, "deformation": data.ArmDeformation},
+			Value:   map[string]float64{"tension": data.StringTension, "deformation": data.BowArmDeformation},
 		})
 	}
 

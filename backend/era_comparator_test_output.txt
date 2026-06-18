@@ -1,0 +1,19 @@
+=== RUN   TestNewComparator
+--- PASS: TestNewComparator (0.00s)
+=== RUN   TestListAncient
+--- PASS: TestListAncient (0.00s)
+=== RUN   TestListModern
+--- PASS: TestListModern (0.00s)
+=== RUN   TestCompareNormalCase
+--- PASS: TestCompareNormalCase (0.00s)
+=== RUN   TestCompareDefaultOptions
+--- PASS: TestCompareDefaultOptions (0.00s)
+=== RUN   TestCompareInvalidCodes
+--- PASS: TestCompareInvalidCodes (0.00s)
+=== RUN   TestTechProgressAssertionFireRateGaps
+--- PASS: TestTechProgressAssertionFireRateGaps (0.00s)
+=== RUN   TestTechProgressAssertionBoundaryValues
+--- PASS: TestTechProgressAssertionBoundaryValues (0.00s)
+PASS
+ok  	crossbow-simulation/backend/internal/era_comparator	0.754s
+Exit code: 0 

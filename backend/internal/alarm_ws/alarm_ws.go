@@ -259,7 +259,7 @@ func (a *AlarmWS) processSensorData(input SensorInput) {
 	}
 
 	// 4. 检测弩臂变形
-	if alert := a.checkDeformation(crossbowID, data.ArmDeformation); alert != nil {
+	if alert := a.checkDeformation(crossbowID, data.BowArmDeformation); alert != nil {
 		a.triggerAlert(alert)
 	}
 

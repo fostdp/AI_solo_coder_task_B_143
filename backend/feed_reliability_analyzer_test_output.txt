@@ -1,0 +1,5 @@
+# crossbow-simulation/backend/internal/feed_reliability_analyzer [crossbow-simulation/backend/internal/feed_reliability_analyzer.test]
+internal\feed_reliability_analyzer\analyzer_test.go:300:16: cannot use &model.PerformanceMetrics{…} (value of type *model.PerformanceMetrics) as model.PerformanceMetrics value in struct literal
+FAIL	crossbow-simulation/backend/internal/feed_reliability_analyzer [build failed]
+FAIL
+Exit code: 1 

@@ -1,0 +1,30 @@
+=== RUN   TestNewComparator
+--- PASS: TestNewComparator (0.00s)
+=== RUN   TestGetAll
+--- PASS: TestGetAll (0.00s)
+=== RUN   TestGetByCode
+--- PASS: TestGetByCode (0.00s)
+=== RUN   TestGetPerformanceMetric
+--- FAIL: TestGetPerformanceMetric (0.00s)
+panic: runtime error: invalid memory address or nil pointer dereference [recovered]
+	panic: runtime error: invalid memory address or nil pointer dereference
+[signal 0xc0000005 code=0x0 addr=0x70 pc=0xae7f02]
+
+goroutine 9 [running]:
+testing.tRunner.func1.2({0xb01da0, 0xc1ba30})
+	d:/go-sdk/go/src/testing/testing.go:1545 +0x238
+testing.tRunner.func1()
+	d:/go-sdk/go/src/testing/testing.go:1548 +0x397
+panic({0xb01da0?, 0xc1ba30?})
+	d:/go-sdk/go/src/runtime/panic.go:914 +0x21f
+crossbow-simulation/backend/internal/mechanism_comparator.GetPerformanceMetric(0xb01200?, {0xb24016?, 0xbfe648?})
+	d:/SOLO-2/AI_solo_coder_task_B_143/backend/internal/mechanism_comparator/comparator.go:60 +0x142
+crossbow-simulation/backend/internal/mechanism_comparator.TestGetPerformanceMetric(0xc00005bba0)
+	d:/SOLO-2/AI_solo_coder_task_B_143/backend/internal/mechanism_comparator/comparator_test.go:58 +0x1cc
+testing.tRunner(0xc00005bba0, 0xb30e08)
+	d:/go-sdk/go/src/testing/testing.go:1595 +0xff
+created by testing.(*T).Run in goroutine 1
+	d:/go-sdk/go/src/testing/testing.go:1648 +0x3ad
+FAIL	crossbow-simulation/backend/internal/mechanism_comparator	0.423s
+FAIL
+Exit code: 1 

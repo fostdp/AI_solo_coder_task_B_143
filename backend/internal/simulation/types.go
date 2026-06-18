@@ -1,6 +1,10 @@
 package simulation
 
-import "gonum.org/v1/gonum/mat"
+import (
+	"time"
+
+	"gonum.org/v1/gonum/mat"
+)
 
 // MaterialParams 材料参数
 type MaterialParams struct {
@@ -12,26 +16,37 @@ type MaterialParams struct {
 
 // BowArmParams 弩臂参数
 type BowArmParams struct {
-	Length        float64       // 弩臂长度 L [m]
-	Width         float64       // 弩臂宽度 b [m]
-	Thickness     float64       // 弩臂厚度 h [m]
-	Mass          float64       // 弩臂质量 m [kg]
-	MomentOfInertia float64     // 转动惯量 I [kg·m²]
-	PivotPoint    mat.VecDense  // 枢轴点坐标 [x, y] [m]
-	Material      MaterialParams
-	DampingCoeff  float64       // 阻尼系数 c [N·s/m]
+	Length             float64       // 弩臂长度 L [m]
+	Width              float64       // 弩臂宽度 b [m]
+	Thickness          float64       // 弩臂厚度 h [m]
+	Mass               float64       // 弩臂质量 m [kg]
+	MomentOfInertia    float64       // 转动惯量 I [kg·m²]
+	PivotPoint         mat.VecDense  // 枢轴点坐标 [x, y] [m]
+	Material           MaterialParams
+	DampingCoeff       float64       // 阻尼系数 c [N·s/m]
+	YoungsModulus      float64       // 弹性模量 E [Pa]
+	MaxStress          float64       // 最大应力 [Pa]
+	PreTension         float64       // 预紧力 [N]
+	TorsionalStiffness float64       // 扭转刚度 [N·m/rad]
+	MaterialName       string        // 材料名称
 }
 
 // BowStringParams 弓弦参数
 type BowStringParams struct {
-	Length0       float64       // 原长 L0 [m]
-	Stiffness     float64       // 线刚度 k [N/m]
-	NonlinearCoeff float64      // 非线性系数 α
-	MassPerUnit   float64       // 线密度 ρ_l [kg/m]
-	PreTension    float64       // 预紧力 T0 [N]
-	DampingCoeff  float64       // 阻尼系数 c [N·s/m]
-	MaxTension    float64       // 最大张力 T_max [N]
-	Material      MaterialParams // 材料参数
+	Length0                float64       // 原长 L0 [m]
+	Stiffness              float64       // 线刚度 k [N/m]
+	NonlinearCoeff         float64       // 非线性系数 α
+	MassPerUnit            float64       // 线密度 ρ_l [kg/m]
+	PreTension             float64       // 预紧力 T0 [N]
+	DampingCoeff           float64       // 阻尼系数 c [N·s/m]
+	MaxTension             float64       // 最大张力 T_max [N]
+	Material               MaterialParams // 材料参数
+	Radius                 float64       // 半径 [m]
+	YoungsModulus          float64       // 弹性模量 E [Pa]
+	YieldStrength          float64       // 屈服强度 [Pa]
+	FatigueStrengthCoeff   float64       // 疲劳强度系数
+	FatigueStrengthExponent float64      // 疲劳强度指数
+	MaterialName           string        // 材料名称
 }
 
 // CamParams 凸轮参数
@@ -68,6 +83,8 @@ type PawlRatchetParams struct {
 	SpringStiffness    float64       // 弹簧刚度 kp [N/m]
 	Preload            float64       // 预紧力 F0 [N]
 	FrictionCoeff      float64       // 摩擦系数 μ
+	Damping            float64       // 阻尼系数
+	RatchetRadius      float64       // 棘轮半径 [m]
 }
 
 // ArrowParams 箭矢参数
@@ -75,8 +92,9 @@ type ArrowParams struct {
 	Mass          float64       // 质量 m_arrow [kg]
 	Length        float64       // 长度 L_arrow [m]
 	Diameter      float64       // 直径 d [m]
+	Radius        float64       // 半径 [m]
 	DragCoeff     float64       // 阻力系数 Cd
-	// 0.47 for sphere, ~0.05 for streamlined
+	TipMass       float64       // 箭头质量 [kg]
 }
 
 // StateVector 系统状态向量
@@ -106,6 +124,7 @@ type BowArmState struct {
 	BendingMoment float64       // 弯矩 M [N·m]
 	ShearForce    float64       // 剪力 V [N]
 	Stress        float64       // 弯曲应力 σ [Pa]
+	Deflection    float64       // 挠度 δ [m]
 }
 
 // CamFollowerState 凸轮从动件状态
@@ -141,12 +160,19 @@ type ArrowState struct {
 
 // FatigueState 疲劳状态
 type FatigueState struct {
-	CycleCount    float64       // 循环次数 N
-	DamageSum     float64       // 损伤累积 Σ(ni/Ni)
-	MaxStress     float64       // 最大应力 σ_max [Pa]
-	MinStress     float64       // 最小应力 σ_min [Pa]
-	StressRatio   float64       // 应力比 R = σ_min/σ_max
-	LifeFraction  float64       // 寿命损耗比例
+	CycleCount         float64       // 循环次数 N
+	DamageSum          float64       // 损伤累积 Σ(ni/Ni)
+	MaxStress          float64       // 最大应力 σ_max [Pa]
+	MinStress          float64       // 最小应力 σ_min [Pa]
+	StressRatio        float64       // 应力比 R = σ_min/σ_max
+	LifeFraction       float64       // 寿命损耗比例
+	StringFatigue      float64       // 弓弦疲劳
+	TotalDamage        float64       // 总损伤
+	Cycles             float64       // 循环次数(兼容)
+	CurrentLifeFraction float64      // 当前寿命分数
+	TensionHistory     []float64     // 张力历史
+	LastUpdated        time.Time     // 最后更新时间
+	TotalDeltaL        float64       // 总伸长量
 }
 
 // RatchetState 棘轮机构状态
@@ -214,6 +240,7 @@ type CamProfilePoint struct {
 	NormalX       float64       // 法向X分量
 	NormalY       float64       // 法向Y分量
 	Curvature     float64       // 曲率 κ [1/m]
+	PressureAngle float64       // 压力角 α [rad]
 }
 
 // LoadingSequence 装填时序
@@ -233,4 +260,67 @@ type SimulationResult struct {
 	ArrowFlight   []ArrowState
 	MaxValues     map[string]float64
 	FatigueResult FatigueState
+}
+
+// Vec3D 三维向量
+type Vec3D struct {
+	X float64
+	Y float64
+	Z float64
+}
+
+// NewVec3D 创建三维向量
+func NewVec3D(x, y, z float64) *Vec3D {
+	return &Vec3D{X: x, Y: y, Z: z}
+}
+
+// TrajectoryPoint 轨迹点
+type TrajectoryPoint struct {
+	Time     float64
+	Position Vec3D
+	Velocity Vec3D
+}
+
+// TrajectoryData 弹道数据
+type TrajectoryData struct {
+	ReleaseTime     float64
+	InitialVelocity Vec3D
+	LaunchAngle     float64
+	Points          []TrajectoryPoint
+	ImpactTime      float64
+	ImpactVelocity  Vec3D
+	MaxHeight       float64
+	FlightTime      float64
+	Range           float64
+	Tension         float64
+	Energy          float64
+}
+
+// DynamicsState 机构动力学状态
+type DynamicsState struct {
+	Time                 float64
+	GeneralizedCoords    []float64
+	GeneralizedVelocities []float64
+	GeneralizedForces    []float64
+	BowArmState          BowArmState
+	CamFollower          CamFollowerState
+	StringTension        float64
+}
+
+// NewDynamicsState 创建新的动力学状态
+func NewDynamicsState() *DynamicsState {
+	n := 6
+	return &DynamicsState{
+		Time:                 0,
+		GeneralizedCoords:    make([]float64, n),
+		GeneralizedVelocities: make([]float64, n),
+		GeneralizedForces:    make([]float64, n),
+		BowArmState:          BowArmState{},
+		CamFollower:          CamFollowerState{},
+	}
+}
+
+// DefaultSimulationConfig 默认仿真配置
+func DefaultSimulationConfig() SimulationConfig {
+	return DefaultConfig()
 }

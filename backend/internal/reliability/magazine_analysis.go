@@ -18,6 +18,8 @@ const (
 	FrictionLowTempMinus20 FrictionCondition = "low_temp_-20c"
 )
 
+type JamFailureMode string
+
 type FrictionMeasurement struct {
 	MaterialPair    string            `json:"materialPair"`
 	Condition       FrictionCondition `json:"condition"`

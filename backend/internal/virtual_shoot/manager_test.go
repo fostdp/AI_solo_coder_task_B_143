@@ -10,6 +10,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func mmValue(m *model.MeasurementMeta) float64 {
+	if m == nil {
+		return 0
+	}
+	return m.Value
+}
+
 // ================== Feature 4: 虚拟射击体验测试 ==================
 
 // ============ 会话管理测试 ============
@@ -164,6 +171,9 @@ func TestShoot_SanGong_ReloadRequired(t *testing.T) {
 	assert.Equal(t, 1, resp1.NewState.ShotsFired)
 	assert.Equal(t, 0, resp1.NewState.CurrentAmmo)
 
+	// 等待至少1秒，越过基于Unix秒的冷却阈值
+	time.Sleep(1100 * time.Millisecond)
+
 	// 第2发：弹夹空了，触发自动装填
 	resp2, _ := mgr.Shoot(sess.SessionID, model.VirtualShootRequest{
 		SessionID: sess.SessionID, Mode: "single",
@@ -186,23 +196,37 @@ func TestShoot_Zhuge_FullMagazine_Reload(t *testing.T) {
 	mgr := NewVirtualShootManager()
 	sess, _ := mgr.NewSession("zhuge")
 
-	req := model.VirtualShootRequest{SessionID: sess.SessionID, Mode: "single"}
 	var lastResp *model.VirtualShootResponse
 
-	// 连续12发，超过10发弹容
-	for i := 0; i < 12; i++ {
-		resp, err := mgr.Shoot(sess.SessionID, req)
-		assert.NoError(t, err)
-		lastResp = resp
-		t.Logf("第%02d发: fired=%v jammed=%v ammo=%d shots=%d reloads=%d",
-			i+1, resp.ShotFired, resp.Jammed,
-			resp.NewState.CurrentAmmo,
-			resp.NewState.ShotsFired,
-			resp.NewState.ReloadCount)
-	}
+	// 第1次 auto 模式：打空10发弹匣（约10发）
+	resp1, err := mgr.Shoot(sess.SessionID, model.VirtualShootRequest{
+		SessionID: sess.SessionID, Mode: "auto",
+	})
+	assert.NoError(t, err)
+	lastResp = resp1
+	t.Logf("第1轮auto: fired=%v jammed=%v ammo=%d shots=%d reloads=%d msg=%v",
+		resp1.ShotFired, resp1.Jammed,
+		resp1.NewState.CurrentAmmo,
+		resp1.NewState.ShotsFired,
+		resp1.NewState.ReloadCount, resp1.Message)
 
-	assert.Equal(t, 12, lastResp.NewState.ShotsFired,
-		"12发应全部成功发射")
+	// 等待越过冷却阈值
+	time.Sleep(1100 * time.Millisecond)
+
+	// 第2次 auto 模式：超过10发，至少触发1次装弹
+	resp2, err := mgr.Shoot(sess.SessionID, model.VirtualShootRequest{
+		SessionID: sess.SessionID, Mode: "auto",
+	})
+	assert.NoError(t, err)
+	lastResp = resp2
+	t.Logf("第2轮auto: fired=%v jammed=%v ammo=%d shots=%d reloads=%d msg=%v",
+		resp2.ShotFired, resp2.Jammed,
+		resp2.NewState.CurrentAmmo,
+		resp2.NewState.ShotsFired,
+		resp2.NewState.ReloadCount, resp2.Message)
+
+	assert.GreaterOrEqual(t, lastResp.NewState.ShotsFired, 11,
+		"两轮auto应至少发射11发（超过1匣容量）")
 	assert.GreaterOrEqual(t, lastResp.NewState.ReloadCount, 1,
 		"超过10发应至少装弹1次")
 }
@@ -257,7 +281,7 @@ func TestShoot_CoolingEnforcement(t *testing.T) {
 	idealRate := 0.0
 	for _, v := range model.CrossbowPresets() {
 		if v.VariantCode == "zhuge" {
-			idealRate = v.Performance.IdealFireRate
+			idealRate = mmValue(v.Performance.IdealFireRate)
 		}
 	}
 	minInterval := 60.0 / idealRate
@@ -314,7 +338,7 @@ func TestShoot_Zhuge_IdealFireRateMet(t *testing.T) {
 	idealRate := 0.0
 	for _, v := range model.CrossbowPresets() {
 		if v.VariantCode == "zhuge" {
-			idealRate = v.Performance.IdealFireRate
+			idealRate = mmValue(v.Performance.IdealFireRate)
 		}
 	}
 

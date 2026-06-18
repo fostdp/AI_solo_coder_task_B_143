@@ -1,0 +1,70 @@
+=== RUN   TestAnalyze_ZhugeMagazine_StandardShots
+    magazine_analysis_test.go:31: 诸葛弩弹容10发，10000发测试：卡弹 13 次，卡弹率 0.001300 (0.1300%)
+    magazine_analysis_test.go:42: MTBF: 769 发, 0.15 小时
+    magazine_analysis_test.go:47: 95%CI: [767, 771]
+--- PASS: TestAnalyze_ZhugeMagazine_StandardShots (0.00s)
+=== RUN   TestAnalyze_SanGong_SingleShotMagazine
+    magazine_analysis_test.go:79: 三弓弩单发弹容分析: 卡弹 19, MTBF 526 发
+--- PASS: TestAnalyze_SanGong_SingleShotMagazine (0.00s)
+=== RUN   TestAnalyze_MinimalShots
+--- PASS: TestAnalyze_MinimalShots (0.00s)
+=== RUN   TestAnalyze_ZeroShots_Fallback
+--- PASS: TestAnalyze_ZeroShots_Fallback (0.00s)
+=== RUN   TestAnalyze_LargeShots_Million
+    magazine_analysis_test.go:112: 长时间测试跳过，用于压力测试
+--- SKIP: TestAnalyze_LargeShots_Million (0.00s)
+=== RUN   TestAnalyze_CapacityVsJamRate_NegativeCorrelation
+    magazine_analysis_test.go:155: 卡弹率: 诸葛弩(10发)=0.002320, 臂张弩(1发)=0.002240, 三弓弩(1发)=0.002240
+--- PASS: TestAnalyze_CapacityVsJamRate_NegativeCorrelation (0.00s)
+=== RUN   TestAnalyze_FatigueFactorAmplification
+    magazine_analysis_test.go:179: 高疲劳(10000发): 卡弹率 0.000100, 低疲劳(2500发): 卡弹率 0.000010
+    magazine_analysis_test.go:184: 卡弹率差(高疲劳-低疲劳): 0.000090
+--- PASS: TestAnalyze_FatigueFactorAmplification (0.00s)
+=== RUN   TestWeibullCDF_MathProperties
+    magazine_analysis_test.go:203: W(2.5,5000) CDF(λ)=0.6321, CDF(3λ)=1.0000, CDF(10λ)=1.0000
+--- PASS: TestWeibullCDF_MathProperties (0.00s)
+=== RUN   TestWeibullQuantile_InverseOfCDF
+    magazine_analysis_test.go:219: p=0.10 → q=2033 → CDF(q)=0.1000 (diff=0.000000)
+    magazine_analysis_test.go:219: p=0.25 → q=3038 → CDF(q)=0.2500 (diff=0.000000)
+    magazine_analysis_test.go:219: p=0.50 → q=4318 → CDF(q)=0.5000 (diff=0.000000)
+    magazine_analysis_test.go:219: p=0.75 → q=5698 → CDF(q)=0.7500 (diff=0.000000)
+    magazine_analysis_test.go:219: p=0.90 → q=6980 → CDF(q)=0.9000 (diff=0.000000)
+    magazine_analysis_test.go:219: p=0.99 → q=9210 → CDF(q)=0.9900 (diff=0.000000)
+--- PASS: TestWeibullQuantile_InverseOfCDF (0.00s)
+=== RUN   TestWeibullQuantile_Boundaries
+--- PASS: TestWeibullQuantile_Boundaries (0.00s)
+=== RUN   TestBuildFMEAMatrix_AllRPNCorrect
+--- PASS: TestBuildFMEAMatrix_AllRPNCorrect (0.00s)
+=== RUN   TestFMEAMatrix_MagazineDamageHighestSeverity
+    magazine_analysis_test.go:279: FMEA最高严重度: MagazineDamage = 9
+--- PASS: TestFMEAMatrix_MagazineDamageHighestSeverity (0.00s)
+=== RUN   TestFMEAMatrix_MisfeedHighestOccurrence
+    magazine_analysis_test.go:297: FMEA最高发生度: Misfeed = 6
+--- PASS: TestFMEAMatrix_MisfeedHighestOccurrence (0.00s)
+=== RUN   TestBuildParamsFromVariant_CapacityMatch
+=== RUN   TestBuildParamsFromVariant_CapacityMatch/zhuge
+    magazine_analysis_test.go:324: 弩型 zhuge: 弹容=10, 基准卡弹率=1/3500
+=== RUN   TestBuildParamsFromVariant_CapacityMatch/bi-zhang
+    magazine_analysis_test.go:324: 弩型 bi-zhang: 弹容=1, 基准卡弹率=1/5000
+=== RUN   TestBuildParamsFromVariant_CapacityMatch/san-gong
+    magazine_analysis_test.go:324: 弩型 san-gong: 弹容=1, 基准卡弹率=1/5000
+--- PASS: TestBuildParamsFromVariant_CapacityMatch (0.00s)
+    --- PASS: TestBuildParamsFromVariant_CapacityMatch/zhuge (0.00s)
+    --- PASS: TestBuildParamsFromVariant_CapacityMatch/bi-zhang (0.00s)
+    --- PASS: TestBuildParamsFromVariant_CapacityMatch/san-gong (0.00s)
+=== RUN   TestReliabilityCurve_ExponentialDecay
+    magazine_analysis_test.go:342: R(min)=0.9704 @ n=150, R(max)=0.0498 @ n=15000
+    magazine_analysis_test.go:350: n≈MTBF时: n=4650, R=0.3946 (expected≈0.3679, diff=0.0267)
+--- PASS: TestReliabilityCurve_ExponentialDecay (0.00s)
+=== RUN   TestAnalyze_ConfidenceIntervalCoverage
+    magazine_analysis_test.go:372: 统计覆盖率测试，耗时长，可选择性运行
+--- SKIP: TestAnalyze_ConfidenceIntervalCoverage (0.00s)
+=== RUN   TestAnalyze_FailureModeSumEqualsJamRate
+    magazine_analysis_test.go:403: 各模式概率和: 0.004200, 总卡弹概率: 0.004200, 差值: 0.000000
+--- PASS: TestAnalyze_FailureModeSumEqualsJamRate (0.00s)
+=== RUN   TestNewAnalyzer_DefaultValues
+    magazine_analysis_test.go:420: 默认参数: BaseJamRate≈0.000200, Capacity从10推断
+--- PASS: TestNewAnalyzer_DefaultValues (0.00s)
+PASS
+ok  	crossbow-simulation/backend/internal/reliability	0.817s
+Exit code: 0 

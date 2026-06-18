@@ -1,0 +1,15 @@
+﻿go.exe : go: downloading golang.org/x/net v0.19.0
+所在位置 行:1 字符: 1
++ & "D:\go-sdk\go\bin\go.exe" test ./internal/api/... ./internal/reliab ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (go: downloading golang.org/x/net  
+   v0.19.0:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+go: downloading github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
+go: downloading github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4
+fb2
+go: downloading github.com/jackc/pgx/v5 v5.5.2
+go: downloading github.com/pelletier/go-toml/v2 v2.1.0
+go: downloading github.com/spf13/viper v1.18.2
+go: downloading golang.org/x/crypto v0.17.0

@@ -1,0 +1,43 @@
+=== RUN   TestNewSessionManager
+--- PASS: TestNewSessionManager (0.00s)
+=== RUN   TestNewSessionValidVariants
+--- PASS: TestNewSessionValidVariants (0.00s)
+=== RUN   TestNewSessionInvalidCodeFallback
+--- PASS: TestNewSessionInvalidCodeFallback (0.00s)
+=== RUN   TestGetSessionExists
+--- PASS: TestGetSessionExists (0.00s)
+=== RUN   TestListActive
+--- PASS: TestListActive (0.00s)
+=== RUN   TestResetSession
+--- PASS: TestResetSession (0.00s)
+=== RUN   TestShootSingleShotSuccess
+--- PASS: TestShootSingleShotSuccess (0.00s)
+=== RUN   TestShootTriggerFeedback
+--- PASS: TestShootTriggerFeedback (0.00s)
+=== RUN   TestShootDynamicsEngineFields
+--- PASS: TestShootDynamicsEngineFields (0.00s)
+=== RUN   TestShootBurstModeFiresMultiple
+--- PASS: TestShootBurstModeFiresMultiple (0.00s)
+=== RUN   TestShootAutoMode
+--- PASS: TestShootAutoMode (0.00s)
+=== RUN   TestShootIntervalCoolingEnforced
+--- PASS: TestShootIntervalCoolingEnforced (0.00s)
+=== RUN   TestShootAutoReloadWhenEmpty
+    session_manager_test.go:251: after 12 shots we should see reloads (cap=10), reloadCount=0
+--- FAIL: TestShootAutoReloadWhenEmpty (0.00s)
+=== RUN   TestShootInvalidSessionAutoCreate
+--- PASS: TestShootInvalidSessionAutoCreate (0.00s)
+=== RUN   TestShootConcurrency
+--- PASS: TestShootConcurrency (0.03s)
+=== RUN   TestSimulateTriggerForceProfiles
+--- PASS: TestSimulateTriggerForceProfiles (0.00s)
+=== RUN   TestTriggerFatigueEffect
+--- PASS: TestTriggerFatigueEffect (0.00s)
+=== RUN   TestTriggerInsufficientTravel
+--- PASS: TestTriggerInsufficientTravel (0.00s)
+=== RUN   TestEngineStatsReported
+--- PASS: TestEngineStatsReported (0.00s)
+FAIL
+FAIL	crossbow-simulation/backend/internal/vr_crossbow	0.847s
+FAIL
+Exit code: 1 

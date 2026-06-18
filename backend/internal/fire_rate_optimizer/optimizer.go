@@ -318,7 +318,7 @@ func (o *FireRateOptimizer) processInput(input OptimizerInput) {
 
 	// 如果在训练中，执行一步训练
 	if o.isTraining && !o.isPaused {
-		action := o.agent.SelectAction(o.currentState)
+		action := o.agent.SelectAction(o.currentState, true)
 		effect := rl.GetActionEffect(action)
 
 		var nextState rl.State
@@ -378,18 +378,10 @@ func (o *FireRateOptimizer) processInput(input OptimizerInput) {
 		reward := o.agent.CalculateReward(o.currentState, nextState, fatigueGrowth)
 
 		// 存储经验
-		exp := rl.Experience{
-			State:     o.currentState,
-			Action:    action,
-			Reward:    reward,
-			NextState: nextState,
-			Done:      done,
-			Timestamp: time.Now(),
-		}
-		o.agent.StoreExperience(exp)
+		o.agent.StoreExperience(o.currentState, action, reward, nextState, done)
 
 		// 训练一步
-		_ = o.agent.TrainStep()
+		_ = o.agent.Train()
 
 		// 更新统计
 		o.totalSteps++
@@ -421,7 +413,7 @@ func (o *FireRateOptimizer) processInput(input OptimizerInput) {
 		}
 	} else {
 		// 不在训练中，仅用当前策略选择动作（推理模式）
-		action := o.agent.SelectAction(o.currentState)
+		action := o.agent.SelectAction(o.currentState, false)
 		effect := rl.GetActionEffect(action)
 		intervalAdjust := (effect.IntervalMultiplier - 1.0) * o.trainingCfg.BaseLoadingInterval
 
@@ -490,7 +482,7 @@ func (o *FireRateOptimizer) handleEpisodeEnd() {
 
 // outputOptimizedAction 输出当前最优动作
 func (o *FireRateOptimizer) outputOptimizedAction() {
-	action := o.agent.SelectAction(o.currentState)
+	action := o.agent.SelectAction(o.currentState, false)
 	effect := rl.GetActionEffect(action)
 	intervalAdjust := (effect.IntervalMultiplier - 1.0) * o.trainingCfg.BaseLoadingInterval
 
@@ -525,6 +517,10 @@ func (o *FireRateOptimizer) GetStatus() *model.RLStatus {
 		avgReward = totalReward / float64(len(o.recentRewards))
 	}
 
+	var trainingStartTime time.Time
+	if o.trainingStartTime != nil {
+		trainingStartTime = *o.trainingStartTime
+	}
 	return &model.RLStatus{
 		IsTraining:        o.isTraining && !o.isPaused,
 		Episode:           o.episode,
@@ -532,7 +528,7 @@ func (o *FireRateOptimizer) GetStatus() *model.RLStatus {
 		AverageReward:     avgReward,
 		Epsilon:           o.agent.GetEpsilon(),
 		CurrentPolicy:     o.agent.GetWeights(),
-		TrainingStartTime: o.trainingStartTime,
+		TrainingStartTime: trainingStartTime,
 		BestReward:        o.bestReward,
 	}
 }

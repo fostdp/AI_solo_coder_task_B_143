@@ -249,10 +249,7 @@ func (r *Repository) DeleteCrossbow(id string) error {
 	return nil
 }
 
-func (r *Repository) InsertSensorData(data *model.SensorData) error {
-	if data == nil {
-		return errors.New("sensor data is nil")
-	}
+func (r *Repository) InsertSensorData(data model.SensorData) error {
 	if data.CrossbowID == "" {
 		return errors.New("crossbow id is required")
 	}

@@ -105,7 +105,6 @@ func (cm *CamMechanism) CalculateProfilePoint(φ float64) CamProfilePoint {
 	φ_start_buf3 := φ_start_dwell_far + Φs
 	φ_start_return := φ_start_buf3 + bufferAngle
 	φ_start_buf4 := φ_start_return + Φprime_main
-	φ_end := φ_start_buf4 + bufferAngle
 
 	// 归一化角度到 [0, 2π)
 	φNorm := math.Mod(φ, 2*math.Pi)
@@ -125,12 +124,8 @@ func (cm *CamMechanism) CalculateProfilePoint(φ float64) CamProfilePoint {
 	case φNorm < φ_start_buf2:
 		// 主推程: 正弦加速度运动规律
 		ratio := (φNorm - φ_start_push) / Φ_main
-		s_main, v_main, a_main := sineAccelerationPush(ratio, h, Φ_main)
-		s = h * (ratio - math.Sin(2*math.Pi*ratio)/(2*math.Pi))
-		ds_dφ = h / Φ_main * (1 - math.Cos(2*math.Pi*ratio))
-		d2s_dφ2 = 2 * math.Pi * h / (Φ_main * Φ_main) * math.Sin(2*math.Pi*ratio)
+		s, ds_dφ, d2s_dφ2 = sineAccelerationPush(ratio, h, Φ_main)
 		d3s_dφ3 = 4 * math.Pi * math.Pi * h / (Φ_main * Φ_main * Φ_main) * math.Cos(2*math.Pi*ratio)
-		_, _, _ = s_main, v_main, a_main
 
 	case φNorm < φ_start_dwell_far:
 		// 第二段缓冲: 从主推程结束到远休止
@@ -227,13 +222,14 @@ func (cm *CamMechanism) CalculateProfilePoint(φ float64) CamProfilePoint {
 	pressureAngle := math.Atan(math.Abs(ds_dφ) / (Rb + s))
 
 	return CamProfilePoint{
-		Angle:     φ,
-		Radius:    r,
-		X:         x,
-		Y:         y,
-		NormalX:   nx,
-		NormalY:   ny,
-		Curvature: curvature,
+		Angle:         φ,
+		Radius:        r,
+		X:             x,
+		Y:             y,
+		NormalX:       nx,
+		NormalY:       ny,
+		Curvature:     curvature,
+		PressureAngle: pressureAngle,
 	}
 }
 

@@ -113,10 +113,9 @@ func (d *Database) GetPoolStats() map[string]interface{} {
 		"idle_conns":       stats.IdleConns(),
 		"acquired_conns":   stats.AcquiredConns(),
 		"max_conns":        stats.MaxConns(),
-		"min_conns":        stats.MinConns(),
 		"new_conns_count":  stats.NewConnsCount(),
-		"lifetime_destroy": stats.LifetimeDestroyCount(),
-		"idle_destroy":     stats.IdleDestroyCount(),
+		"lifetime_destroy": stats.MaxLifetimeDestroyCount(),
+		"idle_destroy":     stats.MaxIdleDestroyCount(),
 	}
 }
 

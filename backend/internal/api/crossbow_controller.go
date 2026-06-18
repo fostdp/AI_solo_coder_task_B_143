@@ -7,23 +7,19 @@ import (
 
 	"crossbow-simulation/backend/internal/alarm_ws"
 	"crossbow-simulation/backend/internal/coordinator"
+	"crossbow-simulation/backend/internal/feed_reliability_analyzer"
 	"crossbow-simulation/backend/internal/model"
 	"crossbow-simulation/backend/internal/reliability"
 	"crossbow-simulation/backend/internal/repository"
 	"crossbow-simulation/backend/internal/virtual_shoot"
+	"crossbow-simulation/backend/internal/mechanism_comparator"
+	"crossbow-simulation/backend/internal/era_comparator"
+	"crossbow-simulation/backend/internal/vr_crossbow"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
-
-type Controller struct {
-	repo      *repository.Repository
-	coord     *coordinator.Coordinator
-	analyzer  *reliability.MagazineReliabilityAnalyzer
-	shootMgr  *virtual_shoot.VirtualShootManager
-	upgrader  websocket.Upgrader
-}
 
 func NewController(repo *repository.Repository, coord *coordinator.Coordinator) *Controller {
 	defaultVariant := model.CrossbowPresets()[0]
@@ -40,6 +36,13 @@ func NewController(repo *repository.Repository, coord *coordinator.Coordinator) 
 				return true
 			},
 		},
+		mechComp: mechanism_comparator.NewComparator(),
+		eraComp:  era_comparator.NewComparator(),
+		feedAnalyzerFactory: func(v *model.CrossbowVariant) *feed_reliability_analyzer.Analyzer {
+			params := feed_reliability_analyzer.BuildParamsFromVariant(v)
+			return feed_reliability_analyzer.NewAnalyzer(params)
+		},
+		vrShootMgr: vr_crossbow.NewSessionManager(),
 	}
 }
 

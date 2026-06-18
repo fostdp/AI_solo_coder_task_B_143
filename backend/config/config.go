@@ -72,6 +72,11 @@ type MechanismParams struct {
 	Magazine     MagazineParams     `json:"magazine"`
 	DesignSpec   DesignSpecParams   `json:"design_spec"`
 	Simulation   SimEnvParams       `json:"simulation"`
+	Training     MechanismTrainingParams `json:"training"`
+}
+
+type MechanismTrainingParams struct {
+	BaseLoadingInterval float64 `json:"base_loading_interval"`
 }
 
 type BowArmParams struct {

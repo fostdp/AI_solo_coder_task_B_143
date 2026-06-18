@@ -1,0 +1,106 @@
+=== RUN   TestNewSession_ZhugeVariant
+    manager_test.go:38: 会话ID: 88039c68-862f-404a-83a6-bdccc62cc3d4, 初始弹容: 10
+--- PASS: TestNewSession_ZhugeVariant (0.00s)
+=== RUN   TestNewSession_SanGongVariant
+--- PASS: TestNewSession_SanGongVariant (0.00s)
+=== RUN   TestNewSession_InvalidVariant_Fallback
+--- PASS: TestNewSession_InvalidVariant_Fallback (0.00s)
+=== RUN   TestGetSession_Exists
+--- PASS: TestGetSession_Exists (0.00s)
+=== RUN   TestGetSession_NotExists
+--- PASS: TestGetSession_NotExists (0.00s)
+=== RUN   TestResetSession_ToInitialState
+    manager_test.go:90: 重置前: 发射1, 疲劳0.0007, 弹容9
+--- PASS: TestResetSession_ToInitialState (0.00s)
+=== RUN   TestResetSession_NotExists
+--- PASS: TestResetSession_NotExists (0.00s)
+=== RUN   TestNewSession_ConcurrentSafety
+--- PASS: TestNewSession_ConcurrentSafety (0.00s)
+=== RUN   TestShoot_SingleShot_FirstFire
+    manager_test.go:156: 首发成功: 剩余弹=9, 耗时5.71s, RPM=10.5, 疲劳=0.000667
+--- PASS: TestShoot_SingleShot_FirstFire (0.00s)
+=== RUN   TestShoot_SanGong_ReloadRequired
+    manager_test.go:179: 
+        	Error Trace:	d:/SOLO-2/AI_solo_coder_task_B_143/backend/internal/virtual_shoot/manager_test.go:179
+        	Error:      	Should be true
+        	Test:       	TestShoot_SanGong_ReloadRequired
+    manager_test.go:180: 三弓弩第二发: fired=false recovered=false msg=武器冷却中，请等待发射间隔 elapsed=40.00s
+    manager_test.go:186: 总发射: 1, 装弹次数: 0
+    manager_test.go:187: 
+        	Error Trace:	d:/SOLO-2/AI_solo_coder_task_B_143/backend/internal/virtual_shoot/manager_test.go:187
+        	Error:      	"0" is not greater than or equal to "1"
+        	Test:       	TestShoot_SanGong_ReloadRequired
+        	Messages:   	弹容1，打第2发时应触发1次装弹
+--- FAIL: TestShoot_SanGong_ReloadRequired (0.00s)
+=== RUN   TestShoot_Zhuge_FullMagazine_Reload
+    manager_test.go:204: 第01发: fired=true jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第02发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第03发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第04发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第05发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第06发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第07发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第08发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第09发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第10发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第11发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:204: 第12发: fired=false jammed=false ammo=9 shots=1 reloads=0
+    manager_test.go:211: 
+        	Error Trace:	d:/SOLO-2/AI_solo_coder_task_B_143/backend/internal/virtual_shoot/manager_test.go:211
+        	Error:      	Not equal: 
+        	            	expected: 12
+        	            	actual  : 1
+        	Test:       	TestShoot_Zhuge_FullMagazine_Reload
+        	Messages:   	12发应全部成功发射
+    manager_test.go:213: 
+        	Error Trace:	d:/SOLO-2/AI_solo_coder_task_B_143/backend/internal/virtual_shoot/manager_test.go:213
+        	Error:      	"0" is not greater than or equal to "1"
+        	Test:       	TestShoot_Zhuge_FullMagazine_Reload
+        	Messages:   	超过10发应至少装弹1次
+--- FAIL: TestShoot_Zhuge_FullMagazine_Reload (0.00s)
+=== RUN   TestShoot_BurstMode_ThreeShots
+    manager_test.go:235: burst模式: 发射3发, 剩余弹7, 耗时17.14s
+--- PASS: TestShoot_BurstMode_ThreeShots (0.00s)
+=== RUN   TestShoot_AutoMode_EmptyMagazine
+    manager_test.go:253: auto模式: 发射10发, 剩余弹=0, 装弹=0, 卡弹=0
+--- PASS: TestShoot_AutoMode_EmptyMagazine (0.00s)
+=== RUN   TestShoot_CoolingEnforcement
+    manager_test.go:271: 诸葛弩理想射速 10.5 发/分 → 最小发射间隔 5.71 秒
+    manager_test.go:286: 冷却拦截成功: isCooling=true, msg=武器冷却中，请等待发射间隔
+--- PASS: TestShoot_CoolingEnforcement (0.00s)
+=== RUN   TestShoot_MissingSessionId
+--- PASS: TestShoot_MissingSessionId (0.00s)
+=== RUN   TestShoot_AutoCreateSession
+    manager_test.go:312: 自动创建会话成功: ID=2054e791-3418-41f0-9056-01704865d3da, 发射=true
+--- PASS: TestShoot_AutoCreateSession (0.00s)
+=== RUN   TestShoot_Zhuge_IdealFireRateMet
+    manager_test.go:343: 理论射速: 10.5 发/分, 实际射速: 10.5 发/分 (100.0%)
+--- PASS: TestShoot_Zhuge_IdealFireRateMet (0.00s)
+=== RUN   TestShoot_FatigueIncreasesWithShots
+    manager_test.go:367: 首次射击疲劳: 0.002000, 60发后疲劳: 0.002000
+--- PASS: TestShoot_FatigueIncreasesWithShots (0.00s)
+=== RUN   TestShoot_HighFatigue_JamRateIncrease
+    manager_test.go:410: 新弩(疲劳≈0): 累计卡弹 0 次, 高疲劳弩(0.9): 累计卡弹 4 次
+    manager_test.go:418: 高疲劳/新弩卡弹比: 4.0
+--- PASS: TestShoot_HighFatigue_JamRateIncrease (0.02s)
+=== RUN   TestShoot_HistoryShotsRecorded
+--- PASS: TestShoot_HistoryShotsRecorded (0.00s)
+=== RUN   TestCloneSession_DeepCopy
+--- PASS: TestCloneSession_DeepCopy (0.00s)
+=== RUN   TestCloneSession_NilSafe
+--- PASS: TestCloneSession_NilSafe (0.00s)
+=== RUN   TestShoot_ConcurrentSameSession
+    manager_test.go:494: 并发100发后: 实际发射2, 卡弹0, 装弹0
+--- PASS: TestShoot_ConcurrentSameSession (0.00s)
+=== RUN   TestGetVariant_Exists
+--- PASS: TestGetVariant_Exists (0.00s)
+=== RUN   TestGetVariant_NotExists
+--- PASS: TestGetVariant_NotExists (0.00s)
+=== RUN   TestListActiveSessions_InitiallyEmpty
+--- PASS: TestListActiveSessions_InitiallyEmpty (0.00s)
+=== RUN   TestShoot_DefaultBurstCount
+--- PASS: TestShoot_DefaultBurstCount (0.00s)
+FAIL
+FAIL	crossbow-simulation/backend/internal/virtual_shoot	2.120s
+FAIL
+Exit code: 1 

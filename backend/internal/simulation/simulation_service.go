@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -211,8 +210,10 @@ func (ss *SimulationService) runLoop() {
 		t := float64(ss.StepCount) * dt
 		ss.ElapsedTime = t
 
-		phase, _ := ss.Engine.LoadingController.Update(t)
-		_, pawlCmd, arrowLoad, trigger := ss.Engine.LoadingController.GetPhaseOutput(t)
+		_phase, _ := ss.Engine.LoadingController.Update(t)
+		_, pawlCmd, _arrowLoad, trigger := ss.Engine.LoadingController.GetPhaseOutput(t)
+		_ = _phase
+		_ = _arrowLoad
 
 		ratchetAngle := ss.CurrentState.Positions.AtVec(5)
 		ratchetVel := ss.CurrentState.Velocities.AtVec(5)
@@ -255,9 +256,11 @@ func (ss *SimulationService) runLoop() {
 }
 
 func (ss *SimulationService) releaseArrow() {
-	xs_dot := ss.CurrentState.Velocities.AtVec(2)
-	T := ss.CurrentState.BowString.Tension
+	_xs_dot := ss.CurrentState.Velocities.AtVec(2)
+	_T := ss.CurrentState.BowString.Tension
 	ΔL := ss.CurrentState.BowString.Elongation
+	_ = _xs_dot
+	_ = _T
 
 	k := ss.Engine.BowString.Stiffness
 	α := ss.Engine.BowString.NonlinearCoeff
@@ -480,7 +483,7 @@ func (ss *SimulationService) saveSensorData() {
 		Temperature:       25.0 + ss.CurrentState.Fatigue.LifeFraction * 20,
 	}
 
-	err := ss.repo.InsertSensorData(sensorData)
+	err := ss.repo.InsertSensorData(*sensorData)
 	if err != nil {
 		log.Printf("Failed to save sensor data: %v", err)
 	}
@@ -504,6 +507,7 @@ func (ss *SimulationService) broadcastAlert(alertType string, value, threshold f
 		alert.Level = "critical"
 		alert.Message = fmt.Sprintf("CRITICAL: %s critical: value=%.2f, threshold=%.2f", alertType, value, threshold)
 	}
+	_ = alertLevel
 
 	_, err := ss.repo.CreateAlert(alert)
 	if err != nil {
