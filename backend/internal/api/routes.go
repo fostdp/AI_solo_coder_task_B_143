@@ -50,6 +50,28 @@ func SetupRoutes(r *gin.Engine, ctrl *Controller) {
 			rl.POST("/pause/:id", ctrl.PauseRLTraining)
 			rl.POST("/resume/:id", ctrl.ResumeRLTraining)
 		}
+
+		variants := api.Group("/variants")
+		{
+			variants.GET("", ctrl.ListVariants)
+			variants.GET("/:code", ctrl.GetVariant)
+			variants.POST("/compare", ctrl.CompareVariants)
+			variants.POST("/reliability/:code", ctrl.AnalyzeMagazineReliability)
+		}
+
+		firearms := api.Group("/firearms")
+		{
+			firearms.GET("", ctrl.ListModernFirearms)
+			firearms.POST("/compare-era", ctrl.CompareEraFirearms)
+		}
+
+		virtual := api.Group("/virtual")
+		{
+			virtual.POST("/start", ctrl.StartVirtualShoot)
+			virtual.POST("/shoot", ctrl.ShootAction)
+			virtual.GET("/:id", ctrl.GetVirtualShootStatus)
+			virtual.POST("/:id/reset", ctrl.ResetVirtualShoot)
+		}
 	}
 
 	r.GET("/ws/crossbow/:id", ctrl.WebSocketHandler)

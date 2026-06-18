@@ -8,7 +8,9 @@ import (
 	"crossbow-simulation/backend/internal/alarm_ws"
 	"crossbow-simulation/backend/internal/coordinator"
 	"crossbow-simulation/backend/internal/model"
+	"crossbow-simulation/backend/internal/reliability"
 	"crossbow-simulation/backend/internal/repository"
+	"crossbow-simulation/backend/internal/virtual_shoot"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -16,15 +18,21 @@ import (
 )
 
 type Controller struct {
-	repo     *repository.Repository
-	coord    *coordinator.Coordinator
-	upgrader websocket.Upgrader
+	repo      *repository.Repository
+	coord     *coordinator.Coordinator
+	analyzer  *reliability.MagazineReliabilityAnalyzer
+	shootMgr  *virtual_shoot.VirtualShootManager
+	upgrader  websocket.Upgrader
 }
 
 func NewController(repo *repository.Repository, coord *coordinator.Coordinator) *Controller {
+	defaultVariant := model.CrossbowPresets()[0]
+	defaultParams := reliability.BuildParamsFromVariant(&defaultVariant)
 	return &Controller{
-		repo:  repo,
-		coord: coord,
+		repo:     repo,
+		coord:    coord,
+		analyzer: reliability.NewMagazineReliabilityAnalyzer(defaultParams),
+		shootMgr: virtual_shoot.NewVirtualShootManager(),
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,

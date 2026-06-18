@@ -8,16 +8,24 @@ import {
   CaretDownOutlined,
   UserOutlined,
   WifiOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  SwapOutlined,
+  HistoryOutlined,
+  SafetyCertificateOutlined,
+  AimOutlined
 } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import dayjs from 'dayjs'
 import SimulationPage from './pages/SimulationPage'
+import CrossbowVariantCompare from './pages/CrossbowVariantCompare'
+import EraFirepowerCompare from './pages/EraFirepowerCompare'
+import MagazineReliability from './pages/MagazineReliability'
+import VirtualShootingGallery from './pages/VirtualShootingGallery'
 
 const { Header, Sider, Content, Footer } = Layout
 const { Title, Text } = Typography
 
-type MenuKey = 'simulation' | 'analysis' | 'alerts' | 'settings'
+type MenuKey = 'simulation' | 'variant-compare' | 'era-compare' | 'reliability' | 'virtual-gallery' | 'alerts' | 'settings'
 
 function App() {
   const [selectedKey, setSelectedKey] = useState<MenuKey>('simulation')
@@ -40,9 +48,24 @@ function App() {
       label: '仿真监控'
     },
     {
-      key: 'analysis',
-      icon: <BarChartOutlined />,
-      label: '数据分析'
+      key: 'variant-compare',
+      icon: <SwapOutlined />,
+      label: '弩型对比'
+    },
+    {
+      key: 'era-compare',
+      icon: <HistoryOutlined />,
+      label: '跨时代火力'
+    },
+    {
+      key: 'reliability',
+      icon: <SafetyCertificateOutlined />,
+      label: '可靠性分析'
+    },
+    {
+      key: 'virtual-gallery',
+      icon: <AimOutlined />,
+      label: '虚拟射击馆'
     },
     {
       key: 'alerts',
@@ -70,8 +93,14 @@ function App() {
     switch (selectedKey) {
       case 'simulation':
         return <SimulationPage onSpeedChange={setSimulationSpeed} />
-      case 'analysis':
-        return <div style={{ padding: 24, color: '#d4c4a8' }}>数据分析页面（开发中）</div>
+      case 'variant-compare':
+        return <CrossbowVariantCompare />
+      case 'era-compare':
+        return <EraFirepowerCompare />
+      case 'reliability':
+        return <MagazineReliability />
+      case 'virtual-gallery':
+        return <VirtualShootingGallery />
       case 'alerts':
         return <div style={{ padding: 24, color: '#d4c4a8' }}>告警管理页面（开发中）</div>
       case 'settings':

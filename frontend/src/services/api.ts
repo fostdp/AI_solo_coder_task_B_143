@@ -131,4 +131,193 @@ export const trajectoryApi = {
     apiClient.get<APIResponse<ArrowTrajectory>>(`/trajectories/${id}`).then(handleResponse)
 }
 
+export interface CrossbowVariant {
+  code: string
+  name: string
+  dynasty: string
+  description: string
+  armLength: number
+  stringTension: number
+  magazineCapacity: number
+  maxRange: number
+  effectiveRange: number
+  theoreticalFireRate: number
+  reloadTime: number
+  accuracyScore: number
+  sustainabilityScore: number
+}
+
+export interface VariantCompareResult {
+  variants: CrossbowVariant[]
+  parameterComparison: {
+    parameter: string
+    unit: string
+    values: Record<string, number>
+    bestCode: string
+  }[]
+  radarData: {
+    dimensions: string[]
+    series: { code: string; name: string; values: number[] }[]
+  }
+  advantages: {
+    category: string
+    code: string
+    name: string
+    value: number
+    unit: string
+  }[]
+}
+
+export interface ModernFirearm {
+  code: string
+  name: string
+  type: string
+  era: number
+  theoreticalFireRate: number
+  actualFireRate: number
+  magazineCapacity: number
+  caliber: string
+  effectiveRange: number
+  muzzleVelocity: number
+}
+
+export interface EraCompareResult {
+  ancient: CrossbowVariant[]
+  modern: ModernFirearm[]
+  stats: {
+    ancientAvgFireRate: number
+    modernAvgFireRate: number
+    fireRateRatio: number
+    rangeRatio: number
+  }
+  comparisonTable: {
+    name: string
+    type: string
+    era: number
+    theoreticalFireRate: number
+    actualFireRate: number
+    magazineCapacity: number
+    caliber: string
+    effectiveRange: number
+    muzzleVelocity: number
+    relativeRatio: number
+  }[]
+  timeline: {
+    year: number
+    name: string
+    fireRate: number
+    type: 'ancient' | 'modern'
+  }[]
+}
+
+export interface ReliabilityResult {
+  totalShots: number
+  jamCount: number
+  jamRate: number
+  mtbf: number
+  mtbfHours: number
+  ciLower: number
+  ciUpper: number
+  reliabilityCurve: { n: number; r: number }[]
+  cumulativeJams: { n: number; count: number }[]
+  failureModes: { mode: string; name: string; count: number; percentage: number }[]
+  fmea: {
+    mode: string
+    name: string
+    severity: number
+    occurrence: number
+    detection: number
+    rpn: number
+    suggestion: string
+  }[]
+}
+
+export interface VirtualShootStartResponse {
+  sessionID: string
+  variantCode: string
+  magazineCapacity: number
+  currentAmmo: number
+}
+
+export interface VirtualShootResponse {
+  shotFired: boolean
+  jammed: boolean
+  recovered: boolean
+  recoverTime: number
+  newState: {
+    currentAmmo: number
+    totalShots: number
+    jams: number
+    stringFatigue: number
+    reloading: boolean
+    reloadProgress: number
+    cooling: boolean
+    coolTimeRemaining: number
+  }
+  hit?: {
+    ring: number
+    offsetX: number
+    offsetY: number
+  }
+}
+
+export interface VirtualShootStatus {
+  sessionID: string
+  variantCode: string
+  magazineCapacity: number
+  currentAmmo: number
+  totalShots: number
+  jams: number
+  stringFatigue: number
+  reloading: boolean
+  reloadProgress: number
+  cooling: boolean
+  coolTimeRemaining: number
+  recentShots: number[]
+  hitHistory: { ring: number; offsetX: number; offsetY: number }[]
+}
+
+export const variantApi = {
+  getVariants: (): Promise<CrossbowVariant[]> =>
+    apiClient.get<APIResponse<CrossbowVariant[]>>('/variants').then(handleResponse),
+
+  getVariant: (code: string): Promise<CrossbowVariant> =>
+    apiClient.get<APIResponse<CrossbowVariant>>(`/variants/${code}`).then(handleResponse),
+
+  compareVariants: (variantCodes: string[]): Promise<VariantCompareResult> =>
+    apiClient.post<APIResponse<VariantCompareResult>>('/variants/compare', {
+      variantCodes,
+      compareMetrics: 'all'
+    }).then(handleResponse),
+
+  analyzeReliability: (code: string, params: { shots: number; simTimeSec: number }): Promise<ReliabilityResult> =>
+    apiClient.post<APIResponse<ReliabilityResult>>(`/variants/reliability/${code}`, params).then(handleResponse)
+}
+
+export const firearmApi = {
+  getModernFirearms: (): Promise<ModernFirearm[]> =>
+    apiClient.get<APIResponse<ModernFirearm[]>>('/firearms').then(handleResponse),
+
+  compareEra: (params: { ancientVariants: string[]; modernFirearms: string[] }): Promise<EraCompareResult> =>
+    apiClient.post<APIResponse<EraCompareResult>>('/firearms/compare-era', params).then(handleResponse)
+}
+
+export const virtualShootApi = {
+  start: (variantCode: string): Promise<VirtualShootStartResponse> =>
+    apiClient.post<APIResponse<VirtualShootStartResponse>>('/virtual/start', { variantCode }).then(handleResponse),
+
+  shoot: (sessionID: string): Promise<VirtualShootResponse> =>
+    apiClient.post<APIResponse<VirtualShootResponse>>('/virtual/shoot', {
+      sessionID,
+      mode: 'single',
+      burstCount: 1
+    }).then(handleResponse),
+
+  getStatus: (id: string): Promise<VirtualShootStatus> =>
+    apiClient.get<APIResponse<VirtualShootStatus>>(`/virtual/${id}`).then(handleResponse),
+
+  reset: (id: string): Promise<void> =>
+    apiClient.post<APIResponse<void>>(`/virtual/${id}/reset`).then(handleResponse)
+}
+
 export default apiClient
