@@ -24,27 +24,35 @@ func buildVariantMap() map[string]model.CrossbowVariant {
 func buildFirearmMap() map[string]model.ModernFirearm {
 	m := make(map[string]model.ModernFirearm)
 	for _, f := range model.ModernFirearmPresets() {
+		m[f.FirearmCode] = f
 		m[f.Name] = f
 	}
 	return m
 }
 
+func metaValue(m *model.MeasurementMeta) float64 {
+	if m == nil {
+		return 0
+	}
+	return m.Value
+}
+
 func getPerformanceMetric(v *model.CrossbowVariant, metric string) float64 {
 	switch metric {
 	case "drawWeight":
-		return v.Performance.DrawWeight
+		return metaValue(v.Performance.DrawWeight)
 	case "maxRange":
-		return v.Performance.MaxRange
+		return metaValue(v.Performance.MaxRange)
 	case "effectiveRange":
-		return v.Performance.EffectiveRange
+		return metaValue(v.Performance.EffectiveRange)
 	case "idealFireRate":
-		return v.Performance.IdealFireRate
+		return metaValue(v.Performance.IdealFireRate)
 	case "magazineSize":
 		return float64(v.Performance.MagazineSize)
 	case "reloadTime":
-		return v.Performance.ReloadTime
+		return metaValue(v.Performance.ReloadTime)
 	case "accuracyScore":
-		return v.Performance.AccuracyScore
+		return metaValue(v.Performance.AccuracyScore)
 	default:
 		return 0
 	}
@@ -246,11 +254,13 @@ func (ctrl *Controller) CompareEraFirearms(c *gin.Context) {
 	bestAncientRange := 0.0
 	bestAncientMag := 0
 	for _, v := range ancientList {
-		if v.Performance.IdealFireRate > bestAncientFireRate {
-			bestAncientFireRate = v.Performance.IdealFireRate
+		fr := metaValue(v.Performance.IdealFireRate)
+		er := metaValue(v.Performance.EffectiveRange)
+		if fr > bestAncientFireRate {
+			bestAncientFireRate = fr
 		}
-		if v.Performance.EffectiveRange > bestAncientRange {
-			bestAncientRange = v.Performance.EffectiveRange
+		if er > bestAncientRange {
+			bestAncientRange = er
 		}
 		if v.Performance.MagazineSize > bestAncientMag {
 			bestAncientMag = v.Performance.MagazineSize
